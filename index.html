@@ -3,129 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Osamah Advanced WhatsApp Lab</title>
-    <!-- تحميل مكتبة الربط الفوري الفائقة للمحادثات الحية عبر الإنترنت -->
+    <title>WhatsApp Lite</title>
+    <!-- تحميل مكتبة المحادثات الحية الفورية عبر الإنترنت -->
     <script src="https://pubnub.com"></script>
     <style>
-        :root {
-            --bg-color: #0c0c0c;
-            --main-color: #00ff00;
-            --box-bg: #111;
-            --text-color: #ffffff;
-        }
-        body { background-color: var(--bg-color); color: var(--main-color); font-family: monospace; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        .container { width: 100%; max-width: 450px; height: 95vh; display: flex; flex-direction: column; position: relative; }
+        body { background-color: #dadbd3; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .container { width: 100%; max-width: 450px; height: 100vh; display: flex; flex-direction: column; background-color: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.1); position: relative; }
         
-        /* تصميم شاشة تسجيل الدخول */
-        .login-box { border: 2px solid var(--main-color); padding: 30px; border-radius: 10px; box-shadow: 0 0 25px rgba(0,255,0,0.3); background-color: var(--box-bg); text-align: center; margin: auto; width: 85%; }
+        /* 1️⃣ تصميم شاشة الدخول المريحة */
+        .login-box { padding: 30px; text-align: center; margin: auto; width: 80%; background: white; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .login-box h1 { color: #075e54; font-size: 1.8em; margin-top: 0; }
         .input-group { margin-bottom: 15px; text-align: right; direction: rtl; }
-        label { display: block; margin-bottom: 5px; color: var(--main-color); font-size: 1em; }
-        input, textarea, select { width: 100%; padding: 10px; border: 1px solid var(--main-color); background-color: #000; color: #fff; border-radius: 5px; box-sizing: border-box; font-family: monospace; }
-        input:focus, textarea:focus, select:focus { outline: none; box-shadow: 0 0 8px var(--main-color); }
-        .btn { width: 100%; padding: 12px; border: none; background-color: var(--main-color); color: #000; font-weight: bold; font-size: 1.1em; border-radius: 5px; cursor: pointer; font-family: monospace; box-shadow: 0 0 10px var(--main-color); margin-top: 10px; }
-        .error-msg { color: #ff3333; font-size: 0.9em; margin-top: 5px; display: none; text-align: right; }
+        label { display: block; margin-bottom: 5px; color: #555; font-size: 0.95em; }
+        input { width: 100%; padding: 12px; border: 1px solid #ccc; background-color: #fff; color: #000; border-radius: 8px; box-sizing: border-box; font-size: 1em; }
+        input:focus { outline: none; border-color: #25d366; }
+        .btn { width: 100%; padding: 12px; border: none; background-color: #25d366; color: white; font-weight: bold; font-size: 1.1em; border-radius: 8px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .btn:hover { background-color: #20ba5a; }
+        .error-msg { color: #ff3333; font-size: 0.85em; margin-top: 5px; display: none; text-align: right; }
 
-        /* تصميم شاشة البحث وإعداد الملف الشخصي */
-        #lobbyScreen { display: none; width: 100%; height: 100%; border: 2px solid var(--main-color); border-radius: 10px; background-color: var(--box-bg); flex-direction: column; padding: 20px; box-sizing: border-box; justify-content: space-between; }
-        .panel { border: 1px solid var(--main-color); padding: 15px; border-radius: 8px; background-color: #000; text-align: right; direction: rtl; margin-bottom: 15px; }
-        .panel h3 { margin-top: 0; color: #fff; border-bottom: 1px solid var(--main-color); padding-bottom: 5px; }
-
-        /* تصميم واجهة الشات والرسائل */
-        #chatScreen { display: none; width: 100%; height: 100%; border: 2px solid var(--main-color); border-radius: 10px; background-color: var(--box-bg); flex-direction: column; box-shadow: 0 0 25px rgba(0,255,0,0.2); }
-        .chat-header { background-color: #000; padding: 12px; border-bottom: 1px solid var(--main-color); text-align: right; direction: rtl; display: flex; justify-content: space-between; align-items: center; }
-        .chat-header h2 { margin: 0; color: #fff; font-size: 1.2em; }
-        .chat-header p { margin: 3px 0 0 0; font-size: 0.85em; color: #aaa; }
-        .back-btn { width: auto; padding: 5px 12px; font-size: 0.9em; background-color: #ff3333; color: #fff; box-shadow: none; margin: 0; }
+        /* 2️⃣ شاشة قائمة جهات الاتصال والبحث */
+        #lobbyScreen { display: none; width: 100%; height: 100%; flex-direction: column; background-color: #f0f2f5; }
+        .lobby-header { background-color: #075e54; color: white; padding: 15px; text-align: right; direction: rtl; font-size: 1.2em; font-weight: bold; }
+        .search-area { padding: 15px; background-color: #fff; border-bottom: 1px solid #e9edef; text-align: right; direction: rtl; }
         
-        /* الخلفيات المخصصة لشاشة المحادثة */
-        .chat-messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; }
-        .bg-matrix { background-color: #000; background-image: radial-gradient(#004d00 1px, transparent 0); background-size: 15px 15px; }
-        .bg-classic { background-color: #0b141a; background-image: url('https://githubusercontent.com'); background-repeat: repeat; }
+        /* 3️⃣ واجهة شاشة المحادثة الحقيقية */
+        #chatScreen { display: none; width: 100%; height: 100%; flex-direction: column; background-color: #efeae2; }
+        .chat-header { background-color: #075e54; color: white; padding: 10px 15px; text-align: right; direction: rtl; display: flex; justify-content: space-between; align-items: center; }
+        .chat-header h2 { margin: 0; font-size: 1.15em; }
+        .back-btn { width: auto; padding: 6px 12px; font-size: 0.9em; background-color: #ff3333; margin: 0; }
         
-        /* فقاعات الرسائل */
-        .msg { margin-bottom: 12px; padding: 10px 14px; border-radius: 8px; max-width: 75%; word-wrap: break-word; text-align: right; direction: rtl; }
-        .msg.me { background-color: #005c4b; border: 1px solid var(--main-color); color: #fff; align-self: flex-end; border-bottom-right-radius: 0; }
-        .msg.other { background-color: #202c33; border: 1px solid #555; color: #fff; align-self: flex-start; border-bottom-left-radius: 0; }
+        /* منطقة الرسائل الفورية بنمط الواتساب */
+        .chat-messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; background-image: url('https://githubusercontent.com'); background-repeat: repeat; }
+        .msg { margin-bottom: 8px; padding: 8px 12px; border-radius: 8px; max-width: 75%; word-wrap: break-word; text-align: right; direction: rtl; font-size: 0.95em; box-shadow: 0 1px 1px rgba(0,0,0,0.1); }
+        .msg.me { background-color: #d9fdd3; color: #111b21; align-self: flex-end; }
+        .msg.other { background-color: #ffffff; color: #111b21; align-self: flex-start; }
         
-        .chat-input-area { padding: 10px; background-color: #000; border-top: 1px solid var(--main-color); display: flex; gap: 8px; }
-        .chat-input-area input { flex: 1; border-radius: 20px; padding-left: 15px; }
-        .send-btn { width: auto; padding: 0 20px; border-radius: 20px; margin: 0; }
+        /* شريط الإرسال السفلي */
+        .chat-input-area { padding: 10px; background-color: #f0f2f5; display: flex; gap: 8px; align-items: center; }
+        .chat-input-area input { flex: 1; border-radius: 20px; padding: 10px 15px; border: none; }
+        .send-btn { width: auto; padding: 10px 20px; border-radius: 20px; margin: 0; }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- 🔐 1. شاشة الدخول والتسجيل لمنع التكرار -->
+        <!-- 🔐 1. شاشة الدخول والتسجيل -->
         <div id="loginScreen" class="login-box">
-            <h1 style="color: #fff; margin-top:0; font-size: 1.8em;">Osamah Secure Chat</h1>
+            <h1>WhatsApp Lite</h1>
             <form onsubmit="handleRegistration(event)">
                 <div class="input-group">
                     <label>البريد الإلكتروني:</label>
-                    <input type="email" required placeholder="example@mail.com">
+                    <input type="email" required placeholder="اكتب إيميلك هنا">
                 </div>
                 <div class="input-group">
                     <label>كلمة المرور:</label>
-                    <input type="password" required placeholder="••••••••">
+                    <input type="password" required placeholder="اكتب كلمة المرور">
                 </div>
                 <div class="input-group">
-                    <label>اسم المستخدم الفريد (Username):</label>
-                    <input type="text" id="usernameInput" required placeholder="مثال: osamah_cyber" autocomplete="off">
-                    <div id="usernameError" class="error-msg">⚠️ هذا الاسم مستخدم حالياً من شخص آخر!</div>
+                    <label>اسم المستخدم (Username):</label>
+                    <input type="text" id="usernameInput" required placeholder="اكتب اسم مستخدم فريد لك" autocomplete="off">
+                    <div id="usernameError" class="error-msg">⚠️ هذا الاسم مستخدم حالياً، اختر اسماً آخر!</div>
                 </div>
-                <button type="submit" class="btn">تسجيل والدخول</button>
+                <button type="submit" class="btn">دخول</button>
             </form>
         </div>
 
-        <!-- 🔍 2. شاشة البحث وإعداد الملف الشخصي والمظهر -->
+        <!-- 🔍 2. شاشة البحث عن اسم المستخدم لبدء شات -->
         <div id="lobbyScreen">
-            <div>
-                <h1 style="font-size: 1.6em; text-align: center; color: #fff; margin-top:0;">لوحة التحكم والمظهر</h1>
-                
-                <!-- لوحة تعديل الملف الشخصي -->
-                <div class="panel">
-                    <h3>👤 ملفك الشخصي الحالي</h3>
-                    <div class="input-group">
-                        <label>حالتك البرمجية (Status):</label>
-                        <input type="text" id="statusInput" placeholder="اكتب حالتك.. (مثال: متصل بالمعمل 🖥️)">
-                    </div>
-                    <div class="input-group">
-                        <label>خلفية غطاء المحادثة المفضل:</label>
-                        <select id="bgSelect" onchange="changeTheme()">
-                            <option value="matrix">نمط الماتريكس التقني 🟢</option>
-                            <option value="classic">نمط الواتساب الكلاسيكي 📱</option>
-                        </select>
-                    </div>
-                    <button class="btn" style="padding:8px; font-size:0.9em;" onclick="saveProfile()">حفظ ملف التعريف</button>
-                </div>
-
-                <!-- لوحة البحث عن الطرف الثاني لبدء شات سري -->
-                <div class="panel" style="margin-top:20px;">
-                    <h3>🔍 بدء محادثة سرية خاصة</h3>
-                    <div class="input-group">
-                        <label>اسم المستخدم للطرف الثاني (Target Username):</label>
-                        <input type="text" id="targetInput" placeholder="اكتب اسم الشخص المطلوب بدقة..">
-                    </div>
-                    <button class="btn" onclick="startPrivateChat()">🔗 اتصـال وبدء الشات</button>
-                </div>
+            <div class="lobby-header">محادثة جديدة</div>
+            <div class="search-area">
+                <label style="font-weight: bold; display: block; margin-bottom: 8px;">ابدأ محادثة مع صديق:</label>
+                <input type="text" id="targetInput" placeholder="اكتب اسم مستخدم صديقك بدقة..">
+                <button class="btn" style="margin-top: 15px;" onclick="startPrivateChat()">💬 بدء المحادثة</button>
             </div>
-            <p style="font-size:0.8em; text-align:center; color:#aaa;">مختبر أسامة للأمن السيبراني الآمن</p>
         </div>
 
-        <!-- 💬 3. واجهة شاشة الواتساب والشات الخاص المشفر -->
+        <!-- 💬 3. واجهة شاشة المحادثة (الواتساب) -->
         <div id="chatScreen">
             <div class="chat-header">
                 <button class="btn back-btn" onclick="backToLobby()">خروج</button>
-                <div style="text-align: right;">
-                    <h2 id="chatWithTitle">اسم الطرف الثاني</h2>
-                    <p id="chatWithStatus">الحالة: جاري التحميل..</p>
+                <div>
+                    <h2 id="chatWithTitle">اسم صديقك</h2>
                 </div>
             </div>
             
-            <div class="chat-messages bg-matrix" id="messageBox">
-                <!-- الرسائل الفورية تترتب هنا حياً -->
+            <div class="chat-messages" id="messageBox">
+                <!-- الرسائل الفورية تظهر هنا حياً -->
             </div>
             
             <div class="chat-input-area">
-                <input type="text" id="msgInput" placeholder="اكتب رسالة مشفرة..." autocomplete="off">
+                <input type="text" id="msgInput" placeholder="اكتب رسالة..." autocomplete="off">
                 <button class="btn send-btn" onclick="sendMessage()">إرسال</button>
             </div>
         </div>
@@ -136,85 +102,52 @@
         let pubnub;
         let activeChannel = "";
 
-        // استرجاع الإعدادات المحفوظة في ذاكرة الآيفون تلقائياً عند فتح الموقع
-        document.getElementById('statusInput').value = localStorage.getItem('myStatus') || "متصل بالمختبر 🛡️";
-        document.getElementById('bgSelect').value = localStorage.getItem('myTheme') || "matrix";
-
         function handleRegistration(event) {
             event.preventDefault();
             myUsername = document.getElementById('usernameInput').value.trim().toLowerCase();
             
-            // تهيئة شبكة الربط السحابية الفورية
+            // تهيئة الاتصال الفوري بالسيرفر الوسيط
             pubnub = new PubNub({
                 publishKey: "pub-c-80bf85fe-9cb4-45aa-a6eb-ba5441e3a650",
                 subscribeKey: "sub-c-572e9d2a-4364-4bf8-b996-51e44f849cf2",
                 uuid: myUsername
             });
 
-            // خطوة فحص الاسم الفريد: التحقق من قائمة المتصلين حالياً بالشبكة لمنع التكرار
-            pubnub.hereNow({ channels: ["osamah_global_check"], includeUUIDs: true }, function(status, response) {
-                let occupants = response.channels["osamah_global_check"]?.occupants || [];
+            // فحص منع تكرار الأسماء بين المستخدمين النشطين
+            pubnub.hereNow({ channels: ["whatsapp_lite_check"], includeUUIDs: true }, function(status, response) {
+                let occupants = response.channels["whatsapp_lite_check"]?.occupants || [];
                 let nameExists = occupants.some(user => user.uuid === myUsername);
 
                 if (nameExists) {
                     document.getElementById('usernameError').style.display = 'block';
                 } else {
                     document.getElementById('usernameError').style.display = 'none';
-                    // الدخول الناجح وإظهار لوحة التحكم والملف الشخصي
+                    // الدخول الناجح وفتح شاشة البحث
                     document.getElementById('loginScreen').style.display = 'none';
                     document.getElementById('lobbyScreen').style.display = 'flex';
                     
-                    // تسجيل حضور الاسم في السيرفر لمنع تكراره من الآخرين
-                    pubnub.subscribe({ channels: ["osamah_global_check"] });
+                    // حفظ الاسم في الشبكة لمنع تكراره
+                    pubnub.subscribe({ channels: ["whatsapp_lite_check"] });
                     listenForMessages();
-                    changeTheme();
                 }
             });
-        }
-
-        function saveProfile() {
-            let currentStatus = document.getElementById('statusInput').value;
-            let currentTheme = document.getElementById('bgSelect').value;
-            
-            // الحفظ الدائم في ذاكرة المتصفح للآيفون
-            localStorage.setItem('myStatus', currentStatus);
-            localStorage.setItem('myTheme', currentTheme);
-            alert("✅ تم حفظ تعديلات ملفك الشخصي ومظهرك بنجاح في ذاكرة الهاتف!");
-        }
-
-        function changeTheme() {
-            let theme = document.getElementById('bgSelect').value;
-            let msgBox = document.getElementById('messageBox');
-            if (theme === 'matrix') {
-                msgBox.className = "chat-messages bg-matrix";
-            } else {
-                msgBox.className = "chat-messages bg-classic";
-            }
         }
 
         function startPrivateChat() {
             targetUser = document.getElementById('targetInput').value.trim().toLowerCase();
             if (targetUser === "" || targetUser === myUsername) {
-                alert("الرجاء كتابة اسم مستخدم صحيح للطرف الآخر!");
+                alert("الرجاء كتابة اسم مستخدم صحيح لصديقك!");
                 return;
             }
 
-            document.getElementById('chatWithTitle').innerHTML = `💬 محادثة خاصة: ${targetUser}`;
+            document.getElementById('chatWithTitle').innerHTML = targetUser;
             
-            // دمج الاسمين أبجدياً لإنشاء غطاء قناة سرية وخاصة بينكما فقط!
+            // إنشاء قناة محادثة خاصة وسرية تجمع الاسمين معاً تلقائياً
             let sortedUsers = [myUsername, targetUser].sort();
-            activeChannel = `private_room_${sortedUsers[0]}_and_${sortedUsers[1]}`;
+            activeChannel = `whatsapp_room_${sortedUsers[0]}_and_${sortedUsers[1]}`;
 
-            // الاشتراك في القناة السرية الخاصة
+            // الاشتراك في شات الصديق
             pubnub.subscribe({ channels: [activeChannel] });
-
-            // إرسال طلب فوري للحصول على حالة الملف الشخصي للطرف الآخر
-            setTimeout(() => {
-                pubnub.publish({
-                    channel: activeChannel,
-                    message: { type: "PROFILE_REQUEST", from: myUsername }
-                });
-            }, 500);
 
             document.getElementById('lobbyScreen').style.display = 'none';
             document.getElementById('chatScreen').style.display = 'flex';
@@ -224,22 +157,9 @@
         function listenForMessages() {
             pubnub.addListener({
                 message: function(event) {
-                    let msg = event.message;
-                    
-                    // معالجة تبادل الملف الشخصي والحالة تلقائياً في الخلفية
-                    if (msg.type === "PROFILE_REQUEST" && msg.from === targetUser) {
-                        let myStatusText = localStorage.getItem('myStatus') || "متصل";
-                        pubnub.publish({
-                            channel: activeChannel,
-                            message: { type: "PROFILE_RESPONSE", from: myUsername, status: myStatusText }
-                        });
-                    }
-                    else if (msg.type === "PROFILE_RESPONSE" && msg.from === targetUser) {
-                        document.getElementById('chatWithStatus').innerHTML = `الحالة: ${msg.status} 🟢`;
-                    }
-                    // معالجة الرسائل النصية العادية بالشات
-                    else if (!msg.type) {
-                        displayMessage(msg.user, msg.text);
+                    // التحقق من أن الرسالة تخص المحادثة الحالية ونفس القناة
+                    if (event.channel === activeChannel) {
+                        displayMessage(event.message.user, event.message.text);
                     }
                 }
             });
@@ -265,7 +185,7 @@
             msgDiv.innerHTML = text;
             
             box.appendChild(msgDiv);
-            box.scrollTop = box.scrollHeight; // النزول التلقائي السلس مع كل رسالة جديدة
+            box.scrollTop = box.scrollHeight; // النزول التلقائي لآخر رسالة
         }
 
         function backToLobby() {
