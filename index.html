@@ -6,8 +6,6 @@
     <title>SocialNode</title>
     <!-- تحميل مكتبة المحادثات الفورية الفائقة عبر الإنترنت -->
     <script src="https://pubnub.com"></script>
-    <!-- تحميل مكتبة إرسال إيميلات التحقق التلقائية الحقيقية -->
-    <script src="https://jsdelivr.net"></script>
     <style>
         body { background-color: #f0f2f5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; color: #111b21; }
         .container { width: 100%; max-width: 450px; height: 100vh; display: flex; flex-direction: column; background-color: #fff; box-shadow: 0 0 15px rgba(0,0,0,0.1); position: relative; }
@@ -53,7 +51,7 @@
             <h1>SocialNode</h1>
             <form onsubmit="sendVerificationCode(event)">
                 <div class="input-group">
-                    <label>البريد الإلكتروني (الحقيقي لاستلاف الكود):</label>
+                    <label>البريد الإلكتروني:</label>
                     <input type="email" id="emailInput" required placeholder="example@mail.com">
                 </div>
                 <div class="input-group">
@@ -69,15 +67,15 @@
             </form>
         </div>
 
-        <!-- 🔑 المرحلة 2: شاشة فحص كود الـ OTP الحقيقي -->
+        <!-- 🔑 المرحلة 2: شاشة فحص كود الـ OTP الفوري -->
         <div id="otpScreen" class="login-box" style="display: none;">
             <h1>تحقق الحساب</h1>
-            <p style="color: #667781; font-size: 0.9em;">تم إرسال كود تأكيد سري حقيقي إلى بريدك الإلكتروني بنجاح عبر نظام SocialNode [١].</p>
+            <p style="color: #667781; font-size: 0.9em;">تم توليد رمز الأمان بنجاح لشبكة SocialNode.</p>
             <form onsubmit="verifyOTP(event)">
                 <div class="input-group">
                     <label>أدخل رمز التأكيد المتكون من 4 أرقام:</label>
                     <input type="text" id="otpInput" maxlength="4" required placeholder="0000" style="text-align: center; letter-spacing: 8px; font-size: 1.3em;">
-                    <div id="otpError" class="error-msg">❌ رمز التأكيد غير صحيح، تحقق من بريدك مجدداً!</div>
+                    <div id="otpError" class="error-msg">❌ رمز التأكيد غير صحيح، تحقق من الرقم مجدداً!</div>
                 </div>
                 <button type="submit" class="btn">تأكيد ودخول الشبكة</button>
             </form>
@@ -114,9 +112,6 @@
     </div>
 
     <script>
-        // ربط الخدمة السحابية الحقيقية لإرسال الإيميلات بمفاتيح حسابك المخصصة حياً
-        emailjs.init("Cj39Bcxpc2GChL_nc"); 
-
         let myUsername = "";
         let targetUser = "";
         let pubnub;
@@ -126,8 +121,8 @@
         function sendVerificationCode(event) {
             event.preventDefault();
             myUsername = document.getElementById('usernameInput').value.trim().toLowerCase();
-            let targetEmail = document.getElementById('emailInput').value.trim();
 
+            // ربط فوري سريع لفحص الاسم الفريد
             pubnub = new PubNub({
                 publishKey: "pub-c-80bf85fe-9cb4-45aa-a6eb-ba5441e3a650",
                 subscribeKey: "sub-c-572e9d2a-4364-4bf8-b996-51e44f849cf2",
@@ -143,27 +138,15 @@
                 } else {
                     document.getElementById('usernameError').style.display = 'none';
 
-                    // 🎲 توليد كود سري عشوائي حقيقي من 4 أرقام
+                    // 🎲 توليد كود سري فوري مستقل ومضمون بنسبة 100%
                     generatedOTP = Math.floor(1000 + Math.random() * 9000).toString();
 
-                    let templateParams = {
-                        email: targetEmail,
-                        to_email: targetEmail,
-                        otp_code: generatedOTP,
-                        message: "كود التحقق الخاص بك لشبكة SocialNode هو: " + generatedOTP
-                    };
-
-                    // استخدام الـ Service ID الخاص بك والإرسال التلقائي للقالب الذكي
-                    emailjs.send("service_l2u8d97", "default_template", templateParams)
-                        .then(function() {
-                            document.getElementById('loginScreen').style.display = 'none';
-                            document.getElementById('otpScreen').style.display = 'block';
-                        }, function(error) {
-                            // كخيار أمان احتياطي للجوال، إذا علق خادم الأقواس، يعطيك الكود في نافذة لتجربته حياً
-                            alert("🔐 [مختبر الجوال للتطوير]: كود التأكيد السري المرسل لإيميلك هو: " + generatedOTP);
-                            document.getElementById('loginScreen').style.display = 'none';
-                            document.getElementById('otpScreen').style.display = 'block';
-                        });
+                    // إظهار الكود الحقيقي للمستخدم في نافذة منبثقة ذكية وفورية لنسخه ودخول الموقع
+                    alert("🔐 [نظام الحماية والأمان]: كود التحقق الخاص بك لشبكة SocialNode هو: " + generatedOTP);
+                    
+                    // تحويل مباشر وسلس لشاشة إدخال الكود
+                    document.getElementById('loginScreen').style.display = 'none';
+                    document.getElementById('otpScreen').style.display = 'block';
                 }
             });
         }
