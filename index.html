@@ -46,7 +46,7 @@
 </head>
 <body>
     <div class="container">
-        <!-- 🔐 المرحلة 1: شاشة الدخول والتسجيل -->
+        <!-- 🔐 المرحلة 1: شاشة الدخول والتسجيل المبدئي -->
         <div id="loginScreen" class="login-box">
             <h1>SocialNode</h1>
             <form onsubmit="sendVerificationCode(event)">
@@ -67,14 +67,14 @@
             </form>
         </div>
 
-        <!-- 🔑 المرحلة 2: شاشة فحص كود الـ OTP الفوري -->
+        <!-- 🔑 المرحلة 2: صفحة وضع رمز التأكيد (الشاشة الثانية) -->
         <div id="otpScreen" class="login-box" style="display: none;">
             <h1>تحقق الحساب</h1>
-            <p style="color: #667781; font-size: 0.9em;">تم توليد رمز الأمان بنجاح لشبكة SocialNode.</p>
+            <p style="color: #667781; font-size: 0.95em; line-height: 1.4;">تم توليد رمز التأكيد السري لشبكة SocialNode بنجاح.</p>
             <form onsubmit="verifyOTP(event)">
                 <div class="input-group">
                     <label>أدخل رمز التأكيد المتكون من 4 أرقام:</label>
-                    <input type="text" id="otpInput" maxlength="4" required placeholder="0000" style="text-align: center; letter-spacing: 8px; font-size: 1.3em;">
+                    <input type="text" id="otpInput" maxlength="4" required placeholder="0000" style="text-align: center; letter-spacing: 8px; font-size: 1.4em; font-weight: bold;">
                     <div id="otpError" class="error-msg">❌ رمز التأكيد غير صحيح، تحقق من الرقم مجدداً!</div>
                 </div>
                 <button type="submit" class="btn">تأكيد ودخول الشبكة</button>
@@ -118,11 +118,12 @@
         let activeChannel = "";
         let generatedOTP = "";
 
+        // وظيفة التوليد والانتقال الفوري والمضمون للشاشة الثانية
         function sendVerificationCode(event) {
             event.preventDefault();
             myUsername = document.getElementById('usernameInput').value.trim().toLowerCase();
 
-            // ربط فوري سريع لفحص الاسم الفريد
+            // الاتصال الفوري بالسيرفر لفحص الاسم الفريد لمنع التكرار
             pubnub = new PubNub({
                 publishKey: "pub-c-80bf85fe-9cb4-45aa-a6eb-ba5441e3a650",
                 subscribeKey: "sub-c-572e9d2a-4364-4bf8-b996-51e44f849cf2",
@@ -138,19 +139,20 @@
                 } else {
                     document.getElementById('usernameError').style.display = 'none';
 
-                    // 🎲 توليد كود سري فوري مستقل ومضمون بنسبة 100%
+                    // 🎲 1. توليد كود سري من 4 أرقام داخلي ومضمون 100%
                     generatedOTP = Math.floor(1000 + Math.random() * 9000).toString();
 
-                    // إظهار الكود الحقيقي للمستخدم في نافذة منبثقة ذكية وفورية لنسخه ودخول الموقع
-                    alert("🔐 [نظام الحماية والأمان]: كود التحقق الخاص بك لشبكة SocialNode هو: " + generatedOTP);
+                    // 📱 2. إظهار الكود فوراً في نافذة منبثقة ذكية على الآيفون لتنسخه
+                    alert("🔓 [SocialNode Secure]: رمز التأكيد السري الخاص بك هو: " + generatedOTP);
                     
-                    // تحويل مباشر وسلس لشاشة إدخال الكود
+                    // 🚀 3. الانتقال الفوري والمباشر لشاشة الـ OTP الثانية!
                     document.getElementById('loginScreen').style.display = 'none';
                     document.getElementById('otpScreen').style.display = 'block';
                 }
             });
         }
 
+        // وظيفة الفحص والتحقق من صحة الكود السري
         function verifyOTP(event) {
             event.preventDefault();
             let userOTP = document.getElementById('otpInput').value.trim();
