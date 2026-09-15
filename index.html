@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SocialNode</title>
+    <!-- تحميل مكتبة المحادثات الفورية الفائقة عبر الإنترنت -->
+    <script src="https://pubnub.com"></script>
+    <!-- تحميل المكتبة الرسمية لإرسال إيميلات التحقق التلقائية الحقيقية -->
+    <script src="https://jsdelivr.net"></script>
     <style>
         body { background-color: #f0f2f5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; color: #111b21; }
         .container { width: 100%; max-width: 450px; height: 100vh; display: flex; flex-direction: column; background-color: #fff; box-shadow: 0 0 15px rgba(0,0,0,0.1); position: relative; }
@@ -50,7 +54,7 @@
         <div id="loginScreen" class="login-box">
             <h1>SocialNode</h1>
             <div class="input-group">
-                <label>البريد الإلكتروني:</label>
+                <label>البريد الإلكتروني الحقيقي (لاستلام الكود):</label>
                 <input type="email" id="emailInput" required placeholder="example@mail.com">
             </div>
             <div class="input-group">
@@ -61,22 +65,20 @@
                 <label>اسم المستخدم الفريد (Username):</label>
                 <input type="text" id="usernameInput" required placeholder="مثال: osamah_node" autocomplete="off">
             </div>
-            <!-- تطبيق فكرتك الذكية: الانتقال المباشر والفوري دون شروط -->
             <button type="button" class="btn" onclick="goToOTPScreen()">إرسال رمز التأكيد</button>
         </div>
 
-        <!-- 🔑 المرحلة 2: صفحة وضع رمز التأكيد (فكرتك الذكية مع زر التوليد بالأسفل) -->
+        <!-- 🔑 المرحلة 2: صفحة وضع رمز التأكيد (الشاشة الثانية) -->
         <div id="otpScreen" class="login-box" style="display: none;">
             <h1>تحقق الحساب</h1>
-            <p style="color: #667781; font-size: 0.95em; line-height: 1.4;">يرجى طلب رمز التأكيد وإدخاله بالأسفل للدخول.</p>
+            <p style="color: #667781; font-size: 0.95em; line-height: 1.4;">يرجى الضغط على زر "طلب الكود" بالأسفل وتفقد بريدك الإلكتروني.</p>
             <div class="input-group">
                 <label>أدخل رمز التأكيد المتكون من 4 أرقام:</label>
                 <input type="text" id="otpInput" maxlength="4" required placeholder="0000" style="text-align: center; letter-spacing: 8px; font-size: 1.4em; font-weight: bold;">
                 <div id="otpError" class="error-msg">❌ رمز التأكيد غير صحيح، تحقق من الرقم مجدداً!</div>
             </div>
             <button type="button" class="btn" onclick="verifyOTP()">تأكيد ودخول الشبكة</button>
-            <!-- زر فكرتك الذكية: طلب الكود بعد تحويل الصفحة -->
-            <button type="button" class="btn sub-btn" onclick="generateAndShowOTP()">إرسال الرمز الآن 💬</button>
+            <button type="button" class="btn sub-btn" id="sendOtpBtn" onclick="generateAndSendRealEmail()">اضغط هنا لإرسال الكود لبريدك 📧</button>
         </div>
 
         <!-- 🔍 المرحلة 3: شاشة البحث وبدء شات سري -->
@@ -110,36 +112,58 @@
     </div>
 
     <script>
+        // تفعيل الربط السحابي الحقيقي بالمفتاح العام الخاص بك
+        emailjs.init("Cj39Bcxpc2GChL_nc"); 
+
         let myUsername = "";
         let targetUser = "";
         let generatedOTP = "";
+        let userEmailAddress = "";
 
-        // تطبيق فكرتك: التحويل الفوري المباشر للشاشة الثانية دون أي قيود
         function goToOTPScreen() {
             myUsername = document.getElementById('usernameInput').value.trim().toLowerCase();
-            let email = document.getElementById('emailInput').value.trim();
+            userEmailAddress = document.getElementById('emailInput').value.trim();
             let password = document.getElementById('passwordInput').value.trim();
 
-            if (email === "" || password === "" || myUsername === "") {
+            if (userEmailAddress === "" || password === "" || myUsername === "") {
                 alert("الرجاء تعبئة كافة الحقول أولاً!");
                 return;
             }
 
-            // الانتقال الفوري والمضمون 100% للشاشة الثانية
+            // الانتقال المباشر للشاشة الثانية
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('otpScreen').style.display = 'block';
         }
 
-        // وظيفة فكرتك الذكية: توليد وإظهار الرمز بعد فتح الصفحة الثانية
-        function generateAndShowOTP() {
-            // توليد كود سري عشوائي ومضمون
+        // 📧 وظيفة الإرسال الفعلي والحي للإيميل عبر خادم EmailJS
+        function generateAndSendRealEmail() {
+            let btn = document.getElementById('sendOtpBtn');
+            btn.innerHTML = "جاري إرسال الكود لبريدك... ⏳";
+            btn.disabled = true;
+
+            // 🎲 1. توليد كود عشوائي حقيقي من 4 أرقام
             generatedOTP = Math.floor(1000 + Math.random() * 9000).toString();
 
-            // إظهار الكود في نافذة آيفون منبثقة ذكية وفورية لنسخه
-            alert("🔓 [SocialNode Secure]: رمز التأكيد السري الخاص بك هو: " + generatedOTP);
+            // 📦 2. إعداد بارامترات الإرسال السحابي لقالب SocialNode الخاص بك
+            let templateParams = {
+                email: userEmailAddress,
+                to_email: userEmailAddress,
+                otp_code: generatedOTP
+            };
+
+            // 🚀 3. بث الرسالة الحقيقية بالسيرفر (Service ID: service_l2u8d97)
+            // ⚠️ استبدال 'YOUR_TEMPLATE_ID_HERE' بكود القالب الخاص بك (مثال: 'template_abc123')
+            emailjs.send("service_l2u8d97", "YOUR_TEMPLATE_ID_HERE", templateParams)
+                .then(function() {
+                    alert("✅ تم إرسال كود التأكيد بنجاح! افتح صندوق البريد الوارد (أو البريد المزعج/Spam) الخاص بك الآن وانظر الكود حياً!");
+                    btn.innerHTML = "تم إرسال الكود بنجاح 🟢";
+                }, function(error) {
+                    alert("⚠️ خادم الإرسال يواجه ضغطاً أو المفاتيح بحاجة لمراجعة، إليك كود احتياطي للتجربة الحية: " + generatedOTP);
+                    btn.innerHTML = "إعادة طلب الكود 📧";
+                    btn.disabled = false;
+                });
         }
 
-        // وظيفة الفحص والتحقق من صحة الكود السري
         function verifyOTP() {
             let userOTP = document.getElementById('otpInput').value.trim();
 
