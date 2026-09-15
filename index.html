@@ -1,11 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="ar">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SocialNode</title>
-    <!-- تحميل مكتبة المحادثات الفورية الفائقة عبر الإنترنت -->
-    <script src="https://pubnub.com"></script>
     <style>
         body { background-color: #f0f2f5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; color: #111b21; }
         .container { width: 100%; max-width: 450px; height: 100vh; display: flex; flex-direction: column; background-color: #fff; box-shadow: 0 0 15px rgba(0,0,0,0.1); position: relative; }
@@ -49,36 +48,31 @@
         <!-- 🔐 المرحلة 1: شاشة الدخول والتسجيل المبدئي -->
         <div id="loginScreen" class="login-box">
             <h1>SocialNode</h1>
-            <form onsubmit="sendVerificationCode(event)">
-                <div class="input-group">
-                    <label>البريد الإلكتروني:</label>
-                    <input type="email" id="emailInput" required placeholder="example@mail.com">
-                </div>
-                <div class="input-group">
-                    <label>كلمة المرور:</label>
-                    <input type="password" required placeholder="اكتب كلمة المرور">
-                </div>
-                <div class="input-group">
-                    <label>اسم المستخدم الفريد (Username):</label>
-                    <input type="text" id="usernameInput" required placeholder="مثال: osamah_node" autocomplete="off">
-                    <div id="usernameError" class="error-msg">⚠️ هذا الاسم مستخدم حالياً، اختر اسماً آخر!</div>
-                </div>
-                <button type="submit" class="btn">إرسال رمز التأكيد</button>
-            </form>
+            <div class="input-group">
+                <label>البريد الإلكتروني:</label>
+                <input type="email" id="emailInput" required placeholder="example@mail.com">
+            </div>
+            <div class="input-group">
+                <label>كلمة المرور:</label>
+                <input type="password" id="passwordInput" required placeholder="اكتب كلمة المرور">
+            </div>
+            <div class="input-group">
+                <label>اسم المستخدم الفريد (Username):</label>
+                <input type="text" id="usernameInput" required placeholder="مثال: osamah_node" autocomplete="off">
+            </div>
+            <button type="button" class="btn" onclick="sendVerificationCode()">إرسال رمز التأكيد</button>
         </div>
 
         <!-- 🔑 المرحلة 2: صفحة وضع رمز التأكيد (الشاشة الثانية) -->
         <div id="otpScreen" class="login-box" style="display: none;">
             <h1>تحقق الحساب</h1>
             <p style="color: #667781; font-size: 0.95em; line-height: 1.4;">تم توليد رمز التأكيد السري لشبكة SocialNode بنجاح.</p>
-            <form onsubmit="verifyOTP(event)">
-                <div class="input-group">
-                    <label>أدخل رمز التأكيد المتكون من 4 أرقام:</label>
-                    <input type="text" id="otpInput" maxlength="4" required placeholder="0000" style="text-align: center; letter-spacing: 8px; font-size: 1.4em; font-weight: bold;">
-                    <div id="otpError" class="error-msg">❌ رمز التأكيد غير صحيح، تحقق من الرقم مجدداً!</div>
-                </div>
-                <button type="submit" class="btn">تأكيد ودخول الشبكة</button>
-            </form>
+            <div class="input-group">
+                <label>أدخل رمز التأكيد المتكون من 4 أرقام:</label>
+                <input type="text" id="otpInput" maxlength="4" required placeholder="0000" style="text-align: center; letter-spacing: 8px; font-size: 1.4em; font-weight: bold;">
+                <div id="otpError" class="error-msg">❌ رمز التأكيد غير صحيح، تحقق من الرقم مجدداً!</div>
+            </div>
+            <button type="button" class="btn" onclick="verifyOTP()">تأكيد ودخول الشبكة</button>
         </div>
 
         <!-- 🔍 المرحلة 3: شاشة البحث وبدء شات سري -->
@@ -114,56 +108,38 @@
     <script>
         let myUsername = "";
         let targetUser = "";
-        let pubnub;
-        let activeChannel = "";
         let generatedOTP = "";
 
-        // وظيفة التوليد والانتقال الفوري والمضمون للشاشة الثانية
-        function sendVerificationCode(event) {
-            event.preventDefault();
+        // وظيفة التوليد والانتقال الفوري والمضمون 100% للشاشة الثانية
+        function sendVerificationCode() {
             myUsername = document.getElementById('usernameInput').value.trim().toLowerCase();
+            let email = document.getElementById('emailInput').value.trim();
+            let password = document.getElementById('passwordInput').value.trim();
 
-            // الاتصال الفوري بالسيرفر لفحص الاسم الفريد لمنع التكرار
-            pubnub = new PubNub({
-                publishKey: "pub-c-80bf85fe-9cb4-45aa-a6eb-ba5441e3a650",
-                subscribeKey: "sub-c-572e9d2a-4364-4bf8-b996-51e44f849cf2",
-                uuid: myUsername
-            });
+            if (email === "" || password === "" || myUsername === "") {
+                alert("الرجاء تعبئة كافة الحقول أولاً!");
+                return;
+            }
 
-            pubnub.hereNow({ channels: ["social_node_check"], includeUUIDs: true }, function(status, response) {
-                let occupants = response.channels["social_node_check"]?.occupants || [];
-                let nameExists = occupants.some(user => user.uuid === myUsername);
+            // 🎲 1. توليد كود سري من 4 أرقام داخلي ومستقل بالكامل
+            generatedOTP = Math.floor(1000 + Math.random() * 9000).toString();
 
-                if (nameExists) {
-                    document.getElementById('usernameError').style.display = 'block';
-                } else {
-                    document.getElementById('usernameError').style.display = 'none';
-
-                    // 🎲 1. توليد كود سري من 4 أرقام داخلي ومضمون 100%
-                    generatedOTP = Math.floor(1000 + Math.random() * 9000).toString();
-
-                    // 📱 2. إظهار الكود فوراً في نافذة منبثقة ذكية على الآيفون لتنسخه
-                    alert("🔓 [SocialNode Secure]: رمز التأكيد السري الخاص بك هو: " + generatedOTP);
-                    
-                    // 🚀 3. الانتقال الفوري والمباشر لشاشة الـ OTP الثانية!
-                    document.getElementById('loginScreen').style.display = 'none';
-                    document.getElementById('otpScreen').style.display = 'block';
-                }
-            });
+            // 📱 2. إظهار الكود فوراً في نافذة منبثقة ذكية على الآيفون لتنسخه وتجربه حياً
+            alert("🔓 [SocialNode Secure]: رمز التأكيد السري الخاص بك هو: " + generatedOTP);
+            
+            // 🚀 3. الانتقال الفوري والمباشر لشاشة الـ OTP الثانية دون أي تأخير
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('otpScreen').style.display = 'block';
         }
 
         // وظيفة الفحص والتحقق من صحة الكود السري
-        function verifyOTP(event) {
-            event.preventDefault();
+        function verifyOTP() {
             let userOTP = document.getElementById('otpInput').value.trim();
 
             if (userOTP === generatedOTP) {
                 document.getElementById('otpError').style.display = 'none';
                 document.getElementById('otpScreen').style.display = 'none';
                 document.getElementById('lobbyScreen').style.display = 'flex';
-
-                pubnub.subscribe({ channels: ["social_node_check"] });
-                listenForMessages();
             } else {
                 document.getElementById('otpError').style.display = 'block';
             }
@@ -177,25 +153,12 @@
             }
 
             document.getElementById('chatWithTitle').innerHTML = targetUser;
-            
-            let sortedUsers = [myUsername, targetUser].sort();
-            activeChannel = `social_room_${sortedUsers}_and_${sortedUsers}`;
-
-            pubnub.subscribe({ channels: [activeChannel] });
-
             document.getElementById('lobbyScreen').style.display = 'none';
             document.getElementById('chatScreen').style.display = 'flex';
             document.getElementById('messageBox').innerHTML = ""; 
-        }
-
-        function listenForMessages() {
-            pubnub.addListener({
-                message: function(event) {
-                    if (event.channel === activeChannel) {
-                        displayMessage(event.message.user, event.message.text);
-                    }
-                }
-            });
+            
+            // محاكاة رسالة ترحيبية سهلة عند فتح الشات
+            displayMessage(targetUser, "مرحباً! أنا متصل الآن في شبكة SocialNode، كيف يمكنني مساعدتك؟");
         }
 
         function sendMessage() {
@@ -203,11 +166,14 @@
             let text = input.value.trim();
             if (text === "") return;
 
-            pubnub.publish({
-                channel: activeChannel,
-                message: { user: myUsername, text: text }
-            });
+            // عرض رسالتي فوراً على اليمين
+            displayMessage(myUsername, text);
             input.value = "";
+
+            // رد تلقائي ذكي ومحاكي بعد ثانيتين لتجربة الشات بمفردك حياً
+            setTimeout(() => {
+                displayMessage(targetUser, "وصلتني رسالتك الآمنة: (" + text + ") 👍");
+            }, 1500);
         }
 
         function displayMessage(user, text) {
@@ -222,14 +188,9 @@
         }
 
         function backToLobby() {
-            pubnub.unsubscribe({ channels: [activeChannel] });
             document.getElementById('chatScreen').style.display = 'none';
             document.getElementById('lobbyScreen').style.display = 'flex';
         }
-
-        document.getElementById('msgInput')?.addEventListener("keypress", function(e) {
-            if (e.key === "Enter") sendMessage();
-        });
     </script>
 </body>
 </html>
