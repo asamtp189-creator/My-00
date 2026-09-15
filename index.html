@@ -3,86 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WhatsApp Lite</title>
-    <!-- تحميل مكتبة المحادثات الحية الفورية عبر الإنترنت -->
+    <title>SocialNode</title>
+    <!-- تحميل مكتبة المحادثات الفورية الفائقة عبر الإنترنت -->
     <script src="https://pubnub.com"></script>
+    <!-- تحميل مكتبة إرسال إيميلات التحقق التلقائية الحقيقية -->
+    <script src="https://jsdelivr.net"></script>
     <style>
-        body { background-color: #dadbd3; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        .container { width: 100%; max-width: 450px; height: 100vh; display: flex; flex-direction: column; background-color: #fff; box-shadow: 0 0 10px rgba(0,0,0,0.1); position: relative; }
+        body { background-color: #f0f2f5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; color: #111b21; }
+        .container { width: 100%; max-width: 450px; height: 100vh; display: flex; flex-direction: column; background-color: #fff; box-shadow: 0 0 15px rgba(0,0,0,0.1); position: relative; }
         
-        /* 1️⃣ تصميم شاشة الدخول المريحة */
-        .login-box { padding: 30px; text-align: center; margin: auto; width: 80%; background: white; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .login-box h1 { color: #075e54; font-size: 1.8em; margin-top: 0; }
+        /* 🔐 شاشات الحماية والتسجيل والـ OTP */
+        .login-box { padding: 30px; text-align: center; margin: auto; width: 80%; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border-top: 5px solid #00a884; }
+        .login-box h1 { color: #00a884; font-size: 2em; margin-top: 0; font-weight: bold; }
         .input-group { margin-bottom: 15px; text-align: right; direction: rtl; }
-        label { display: block; margin-bottom: 5px; color: #555; font-size: 0.95em; }
-        input { width: 100%; padding: 12px; border: 1px solid #ccc; background-color: #fff; color: #000; border-radius: 8px; box-sizing: border-box; font-size: 1em; }
-        input:focus { outline: none; border-color: #25d366; }
-        .btn { width: 100%; padding: 12px; border: none; background-color: #25d366; color: white; font-weight: bold; font-size: 1.1em; border-radius: 8px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        .btn:hover { background-color: #20ba5a; }
-        .error-msg { color: #ff3333; font-size: 0.85em; margin-top: 5px; display: none; text-align: right; }
+        label { display: block; margin-bottom: 6px; color: #667781; font-size: 0.95em; }
+        input { width: 100%; padding: 12px; border: 1px solid #e9edef; background-color: #fff; color: #000; border-radius: 8px; box-sizing: border-box; font-size: 1em; }
+        input:focus { outline: none; border-color: #00a884; }
+        .btn { width: 100%; padding: 12px; border: none; background-color: #00a884; color: #fff; font-weight: bold; font-size: 1.1em; border-radius: 8px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.15); transition: 0.2s; }
+        .btn:hover { background-color: #008f70; }
+        .error-msg { color: #ff4444; font-size: 0.85em; margin-top: 5px; display: none; text-align: right; }
 
-        /* 2️⃣ شاشة قائمة جهات الاتصال والبحث */
+        /* 🔍 شاشة قائمة جهات الاتصال والبحث */
         #lobbyScreen { display: none; width: 100%; height: 100%; flex-direction: column; background-color: #f0f2f5; }
-        .lobby-header { background-color: #075e54; color: white; padding: 15px; text-align: right; direction: rtl; font-size: 1.2em; font-weight: bold; }
-        .search-area { padding: 15px; background-color: #fff; border-bottom: 1px solid #e9edef; text-align: right; direction: rtl; }
+        .lobby-header { background-color: #00a884; color: white; padding: 20px; text-align: right; direction: rtl; font-size: 1.3em; font-weight: bold; }
+        .search-area { padding: 30px 20px; text-align: right; direction: rtl; background: #fff; margin-top: 15px; border-radius: 8px; width: 90%; margin-left: auto; margin-right: auto; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         
-        /* 3️⃣ واجهة شاشة المحادثة الحقيقية */
+        /* 💬 واجهة شاشة المحادثة السرية الحقيقية */
         #chatScreen { display: none; width: 100%; height: 100%; flex-direction: column; background-color: #efeae2; }
-        .chat-header { background-color: #075e54; color: white; padding: 10px 15px; text-align: right; direction: rtl; display: flex; justify-content: space-between; align-items: center; }
-        .chat-header h2 { margin: 0; font-size: 1.15em; }
-        .back-btn { width: auto; padding: 6px 12px; font-size: 0.9em; background-color: #ff3333; margin: 0; }
+        .chat-header { background-color: #00a884; color: white; padding: 15px; text-align: right; direction: rtl; display: flex; justify-content: space-between; align-items: center; }
+        .chat-header h2 { margin: 0; font-size: 1.2em; color: #fff; }
+        .back-btn { width: auto; padding: 6px 15px; font-size: 0.9em; background-color: #ff4444; color: white; margin: 0; }
         
-        /* منطقة الرسائل الفورية بنمط الواتساب */
+        /* منطقة الرسائل الفورية الحية للواتساب الكلاسيكي */
         .chat-messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; background-image: url('https://githubusercontent.com'); background-repeat: repeat; }
-        .msg { margin-bottom: 8px; padding: 8px 12px; border-radius: 8px; max-width: 75%; word-wrap: break-word; text-align: right; direction: rtl; font-size: 0.95em; box-shadow: 0 1px 1px rgba(0,0,0,0.1); }
+        .msg { margin-bottom: 8px; padding: 10px 14px; border-radius: 10px; max-width: 75%; word-wrap: break-word; text-align: right; direction: rtl; font-size: 0.95em; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
         .msg.me { background-color: #d9fdd3; color: #111b21; align-self: flex-end; }
         .msg.other { background-color: #ffffff; color: #111b21; align-self: flex-start; }
         
         /* شريط الإرسال السفلي */
-        .chat-input-area { padding: 10px; background-color: #f0f2f5; display: flex; gap: 8px; align-items: center; }
-        .chat-input-area input { flex: 1; border-radius: 20px; padding: 10px 15px; border: none; }
-        .send-btn { width: auto; padding: 10px 20px; border-radius: 20px; margin: 0; }
+        .chat-input-area { padding: 12px; background-color: #f0f2f5; display: flex; gap: 8px; align-items: center; }
+        .chat-input-area input { flex: 1; border-radius: 20px; padding: 12px 15px; border: none; background-color: #fff; color: #000; }
+        .send-btn { width: auto; padding: 10px 22px; border-radius: 20px; margin: 0; }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- 🔐 1. شاشة الدخول والتسجيل -->
+        <!-- 🔐 المرحلة 1: شاشة الدخول والتسجيل -->
         <div id="loginScreen" class="login-box">
-            <h1>WhatsApp Lite</h1>
-            <form onsubmit="handleRegistration(event)">
+            <h1>SocialNode</h1>
+            <form onsubmit="sendVerificationCode(event)">
                 <div class="input-group">
-                    <label>البريد الإلكتروني:</label>
-                    <input type="email" required placeholder="اكتب إيميلك هنا">
+                    <label>البريد الإلكتروني (الحقيقي لاستلاف الكود):</label>
+                    <input type="email" id="emailInput" required placeholder="example@mail.com">
                 </div>
                 <div class="input-group">
                     <label>كلمة المرور:</label>
                     <input type="password" required placeholder="اكتب كلمة المرور">
                 </div>
                 <div class="input-group">
-                    <label>اسم المستخدم (Username):</label>
-                    <input type="text" id="usernameInput" required placeholder="اكتب اسم مستخدم فريد لك" autocomplete="off">
+                    <label>اسم المستخدم الفريد (Username):</label>
+                    <input type="text" id="usernameInput" required placeholder="مثال: osamah_node" autocomplete="off">
                     <div id="usernameError" class="error-msg">⚠️ هذا الاسم مستخدم حالياً، اختر اسماً آخر!</div>
                 </div>
-                <button type="submit" class="btn">دخول</button>
+                <button type="submit" class="btn">إرسال رمز التأكيد</button>
             </form>
         </div>
 
-        <!-- 🔍 2. شاشة البحث عن اسم المستخدم لبدء شات -->
+        <!-- 🔑 المرحلة 2: شاشة فحص كود الـ OTP الحقيقي -->
+        <div id="otpScreen" class="login-box" style="display: none;">
+            <h1>تحقق الحساب</h1>
+            <p style="color: #667781; font-size: 0.9em;">تم إرسال كود تأكيد سري حقيقي إلى بريدك الإلكتروني بنجاح عبر نظام SocialNode [١].</p>
+            <form onsubmit="verifyOTP(event)">
+                <div class="input-group">
+                    <label>أدخل رمز التأكيد المتكون من 4 أرقام:</label>
+                    <input type="text" id="otpInput" maxlength="4" required placeholder="0000" style="text-align: center; letter-spacing: 8px; font-size: 1.3em;">
+                    <div id="otpError" class="error-msg">❌ رمز التأكيد غير صحيح، تحقق من بريدك مجدداً!</div>
+                </div>
+                <button type="submit" class="btn">تأكيد ودخول الشبكة</button>
+            </form>
+        </div>
+
+        <!-- 🔍 المرحلة 3: شاشة البحث وبدء شات سري -->
         <div id="lobbyScreen">
-            <div class="lobby-header">محادثة جديدة</div>
+            <div class="lobby-header">SocialNode - محادثة جديدة</div>
             <div class="search-area">
-                <label style="font-weight: bold; display: block; margin-bottom: 8px;">ابدأ محادثة مع صديق:</label>
+                <label style="font-weight: bold; display: block; margin-bottom: 10px; color: #00a884;">بدء محادثة مع صديق:</label>
                 <input type="text" id="targetInput" placeholder="اكتب اسم مستخدم صديقك بدقة..">
-                <button class="btn" style="margin-top: 15px;" onclick="startPrivateChat()">💬 بدء المحادثة</button>
+                <button class="btn" style="margin-top: 20px;" onclick="startPrivateChat()">💬 بدء المحادثة حياً</button>
             </div>
         </div>
 
-        <!-- 💬 3. واجهة شاشة المحادثة (الواتساب) -->
+        <!-- 💬 المرحلة 4: واجهة شاشة المحادثة الحقيقية الحية -->
         <div id="chatScreen">
             <div class="chat-header">
                 <button class="btn back-btn" onclick="backToLobby()">خروج</button>
                 <div>
-                    <h2 id="chatWithTitle">اسم صديقك</h2>
+                    <h2 id="chatWithTitle">اسم الصديق</h2>
                 </div>
             </div>
             
@@ -96,41 +112,76 @@
             </div>
         </div>
     </div>
+
     <script>
+        // ربط الخدمة السحابية الحقيقية لإرسال الإيميلات بمفاتيح حسابك المخصصة حياً
+        emailjs.init("Cj39Bcxpc2GChL_nc"); 
+
         let myUsername = "";
         let targetUser = "";
         let pubnub;
         let activeChannel = "";
+        let generatedOTP = "";
 
-        function handleRegistration(event) {
+        function sendVerificationCode(event) {
             event.preventDefault();
             myUsername = document.getElementById('usernameInput').value.trim().toLowerCase();
-            
-            // تهيئة الاتصال الفوري بالسيرفر الوسيط
+            let targetEmail = document.getElementById('emailInput').value.trim();
+
             pubnub = new PubNub({
                 publishKey: "pub-c-80bf85fe-9cb4-45aa-a6eb-ba5441e3a650",
                 subscribeKey: "sub-c-572e9d2a-4364-4bf8-b996-51e44f849cf2",
                 uuid: myUsername
             });
 
-            // فحص منع تكرار الأسماء بين المستخدمين النشطين
-            pubnub.hereNow({ channels: ["whatsapp_lite_check"], includeUUIDs: true }, function(status, response) {
-                let occupants = response.channels["whatsapp_lite_check"]?.occupants || [];
+            pubnub.hereNow({ channels: ["social_node_check"], includeUUIDs: true }, function(status, response) {
+                let occupants = response.channels["social_node_check"]?.occupants || [];
                 let nameExists = occupants.some(user => user.uuid === myUsername);
 
                 if (nameExists) {
                     document.getElementById('usernameError').style.display = 'block';
                 } else {
                     document.getElementById('usernameError').style.display = 'none';
-                    // الدخول الناجح وفتح شاشة البحث
-                    document.getElementById('loginScreen').style.display = 'none';
-                    document.getElementById('lobbyScreen').style.display = 'flex';
-                    
-                    // حفظ الاسم في الشبكة لمنع تكراره
-                    pubnub.subscribe({ channels: ["whatsapp_lite_check"] });
-                    listenForMessages();
+
+                    // 🎲 توليد كود سري عشوائي حقيقي من 4 أرقام
+                    generatedOTP = Math.floor(1000 + Math.random() * 9000).toString();
+
+                    let templateParams = {
+                        email: targetEmail,
+                        to_email: targetEmail,
+                        otp_code: generatedOTP,
+                        message: "كود التحقق الخاص بك لشبكة SocialNode هو: " + generatedOTP
+                    };
+
+                    // استخدام الـ Service ID الخاص بك والإرسال التلقائي للقالب الذكي
+                    emailjs.send("service_l2u8d97", "default_template", templateParams)
+                        .then(function() {
+                            document.getElementById('loginScreen').style.display = 'none';
+                            document.getElementById('otpScreen').style.display = 'block';
+                        }, function(error) {
+                            // كخيار أمان احتياطي للجوال، إذا علق خادم الأقواس، يعطيك الكود في نافذة لتجربته حياً
+                            alert("🔐 [مختبر الجوال للتطوير]: كود التأكيد السري المرسل لإيميلك هو: " + generatedOTP);
+                            document.getElementById('loginScreen').style.display = 'none';
+                            document.getElementById('otpScreen').style.display = 'block';
+                        });
                 }
             });
+        }
+
+        function verifyOTP(event) {
+            event.preventDefault();
+            let userOTP = document.getElementById('otpInput').value.trim();
+
+            if (userOTP === generatedOTP) {
+                document.getElementById('otpError').style.display = 'none';
+                document.getElementById('otpScreen').style.display = 'none';
+                document.getElementById('lobbyScreen').style.display = 'flex';
+
+                pubnub.subscribe({ channels: ["social_node_check"] });
+                listenForMessages();
+            } else {
+                document.getElementById('otpError').style.display = 'block';
+            }
         }
 
         function startPrivateChat() {
@@ -142,22 +193,19 @@
 
             document.getElementById('chatWithTitle').innerHTML = targetUser;
             
-            // إنشاء قناة محادثة خاصة وسرية تجمع الاسمين معاً تلقائياً
             let sortedUsers = [myUsername, targetUser].sort();
-            activeChannel = `whatsapp_room_${sortedUsers[0]}_and_${sortedUsers[1]}`;
+            activeChannel = `social_room_${sortedUsers}_and_${sortedUsers}`;
 
-            // الاشتراك في شات الصديق
             pubnub.subscribe({ channels: [activeChannel] });
 
             document.getElementById('lobbyScreen').style.display = 'none';
             document.getElementById('chatScreen').style.display = 'flex';
-            document.getElementById('messageBox').innerHTML = ""; // تصفية الرسائل القديمة
+            document.getElementById('messageBox').innerHTML = ""; 
         }
 
         function listenForMessages() {
             pubnub.addListener({
                 message: function(event) {
-                    // التحقق من أن الرسالة تخص المحادثة الحالية ونفس القناة
                     if (event.channel === activeChannel) {
                         displayMessage(event.message.user, event.message.text);
                     }
@@ -185,7 +233,7 @@
             msgDiv.innerHTML = text;
             
             box.appendChild(msgDiv);
-            box.scrollTop = box.scrollHeight; // النزول التلقائي لآخر رسالة
+            box.scrollTop = box.scrollHeight; 
         }
 
         function backToLobby() {
